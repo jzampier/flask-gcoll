@@ -12,14 +12,19 @@
   <body>
     <div class="container">
       {% with messages = get_flashed_messages() %} {% if messages %}
-      <ul class="flashes">
+      <ul id="messages" class="list-unstyled">
         {% for message in messages %}
-        <li>{{ message }}</li>
+        <li class="alert alert-success">{{ message }}</li>
         {% endfor %}
       </ul>
-      {% endif %} {% endwith %} {% block body %}{% endblock %}
+      {% endif %} {% endwith %}
       <h1>Please enter your credentials</h1>
-      <form method="POST" action="/authenticate">
+      <form method="post" action="{{url_for('authenticate')}}">
+        <input
+          type="hidden"
+          name="next_page"
+          value="{{ next_page or url_for('index') }}"
+        />
         <p>
           <label>Username:</label>
           <input class="form-control" type="text" name="user_name" required />
