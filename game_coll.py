@@ -1,11 +1,12 @@
 """Flask Game Site"""
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, flash
 
 app = Flask(__name__)
+app.secret_key = 'tio_julio'
 
 
 class Game:
-    """_summary_"""
+    """Class with our game atributes"""
 
     def __init__(self, name, category, console) -> None:
         self.name = name
@@ -27,17 +28,17 @@ game_list = [
 
 @app.route('/')
 def index():
-    """_summary_
+    """Render homepage
 
     Returns:
-        _description_
+        Render index.html page
     """
     return render_template('index.html', ttl='my game collection', games=game_list)
 
 
 @app.route('/new_game')
 def new():
-    """_summary_"""
+    """Render the new game page"""
     return render_template('new_game.html', ttl='New Game')
 
 
@@ -48,7 +49,8 @@ def new():
     ],
 )
 def create():
-    """_summary_"""
+    """Get information on field, append it to game_list
+    and redirect to home page (/)"""
     name = request.form.get('name')
     category = request.form.get('category')
     console = request.form.get('console')
@@ -57,7 +59,32 @@ def create():
     return redirect('/')
 
 
+@app.route('/login')
+def login():
+    """render login page
+
+    Returns:
+        renders our login page
+    """
+    return render_template('login.html')
+
+
+@app.route(
+    '/authenticate',
+    methods=[
+        'POST',
+    ],
+)
+def authenticate():
+    """Authenticates user and redirects to home page
+    or login page (if password is incorrect)"""
+    if 'master' == request.form.get('user_password'):
+        session['user_authenticated'] = request.form.get('user_name')
+        flash(request.form.get('user_name') + ' has successfully logged in')
+        return redirect('/')
+    flash('Loggin attemept failed! Type your password correctly')
+    return redirect('/login')
+
+
 if __name__ == "__main__":
     app.run(debug=True)
-
-#!4.6
