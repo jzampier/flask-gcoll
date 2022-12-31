@@ -8,7 +8,8 @@ app.secret_key = 'tio_julio'
 class Game:
     """Class with our game atributes"""
 
-    def __init__(self, name, category, console) -> None:
+    def __init__(self, name, category, console, game_id=None) -> None:
+        self.game_id = game_id
         self.name = name
         self.category = category
         self.console = console

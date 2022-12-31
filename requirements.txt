@@ -35,6 +35,7 @@ pure-eval==0.2.2
 Pygments==2.13.0
 pylint==2.15.9
 python-dateutil==2.8.2
+python-dotenv==0.21.0
 pywin32==305
 pyzmq==24.0.1
 six==1.16.0
