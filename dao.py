@@ -1,9 +1,9 @@
-"""Classes and methods to CRUD operations"""
-from game_coll import User, Game
+"""Data Access Object"""
+from models import User, Game
 
 SQL_DELETE_GAME = 'DELETE from game where id = %s'
 SQL_GAME_POR_ID = 'SELECT id, name, category, console from game where id = %s'
-SQL_USER_POR_ID = 'SELECT id, name, senha from user where id = %s'
+SQL_USER_POR_ID = 'SELECT id, name, psw from user where id = %s'
 SQL_UPDATE_GAME = 'UPDATE game SET name=%s, category=%s, console=%s where id = %s'
 SQL_SEARCH_GAMES = 'SELECT id, name, category, console from game'
 SQL_CREATE_GAME = 'INSERT into game (name, category, console) values (%s, %s, %s)'

@@ -1,44 +1,33 @@
 """Flask Game Site"""
-from flask import Flask, render_template, request, redirect, session, flash, url_for
+import os
+
+from dotenv import find_dotenv, load_dotenv
+from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask_mysqldb import MySQL
+
+from dao import GameDao, UserDao
+from models import Game, User
 
 app = Flask(__name__)
 app.secret_key = 'tio_julio'
 
+dotenv_path = find_dotenv()
+load_dotenv(dotenv_path)
+bd_user = os.getenv('user')
+bd_passwd = os.getenv('passwd')
+bd_host = os.getenv('host')
+bd_port = int(os.getenv('port'))
 
-class Game:
-    """Class with our game atributes"""
+app.config['MYSQL_HOST'] = bd_host
+app.config['MYSQL_USER'] = bd_user
+app.config['MYSQL_PASSWORD'] = bd_passwd
+app.config['MYSQL_DB'] = 'gamecollection'
+app.config['MYSQL_PORT'] = bd_port
 
-    def __init__(self, name, category, console, game_id=None) -> None:
-        self.game_id = game_id
-        self.name = name
-        self.category = category
-        self.console = console
+db = MySQL(app)
 
-
-class User:
-    """New user class"""
-
-    def __init__(self, user_id, user_name, user_password):
-        self.user_id = user_id
-        self.user_name = user_name
-        self.user_password = user_password
-
-
-user1 = User('julio', 'Julio Zampier', '1234')
-user2 = User('fulano', 'Fulano de Tal', '4321')
-user3 = User('Sikrano', 'Sikrano de Golveia', '5678')
-users = {user1.user_id: user1, user2.user_id: user2, user3.user_id: user3}
-
-game1 = Game('World of Warcraft', 'MMORPG', 'PC')
-game2 = Game('League of Legends', 'MOBA', 'PC')
-game3 = Game('Unreal Tournament', 'FPS', 'PC')
-game4 = Game('Street Fighter II', 'Fight', 'Arcade')
-game_list = [
-    game1,
-    game2,
-    game3,
-    game4,
-]
+user_dao = UserDao(db)
+game_dao = GameDao(db)
 
 
 @app.route('/')
@@ -48,10 +37,11 @@ def index():
     Returns:
         Render index.html page
     """
+    game_list = game_dao.list()
     return render_template('index.html', ttl='my game collection', games=game_list)
 
 
-@app.route('/new_game')
+@app.route('/new')
 def new():
     """Render the new game page"""
     if 'user_authenticated' not in session or session.get('user_authenticated') is None:
@@ -73,7 +63,41 @@ def create():
     category = request.form.get('category')
     console = request.form.get('console')
     game = Game(name, category, console)
-    game_list.append(game)
+    game_dao.save(game)
+    return redirect(url_for('index'))
+
+
+@app.route('/update/<int:game_id>')
+def update(game_id):
+    """Render the update page"""
+    if 'user_authenticated' not in session or session.get('user_authenticated') is None:
+        #!using querystring to redirect to new_game after authentication
+        return redirect(url_for('login', next_page=url_for('update')))
+    game = game_dao.search_for_id(game_id)
+    return render_template('update.html', ttl='Update Game Info', game=game)
+
+
+@app.route(
+    '/edit',
+    methods=[
+        'POST',
+    ],
+)
+def edit():
+    """Get information on fields"""
+    name = request.form.get('name')
+    category = request.form.get('category')
+    console = request.form.get('console')
+    game = Game(name, category, console, game_id=request.form.get('game_id'))
+    game_dao.save(game)
+    return redirect(url_for('index'))
+
+
+@app.route('/delete/<int:game_id>')
+def delete(game_id):
+    """delete a game from our database"""
+    game_dao.delete(game_id)
+    flash('Game deleted successfully.')
     return redirect(url_for('index'))
 
 
@@ -98,8 +122,8 @@ def login():
 def authenticate():
     """Authenticates user and redirects to home page
     or login page (if password is incorrect)"""
-    if request.form.get('user_name') in users:
-        user = users[request.form.get('user_name')]
+    user = user_dao.search_for_id(request.form.get('user_name'))
+    if user:
         if user.user_password == request.form.get('user_password'):
             # Store user in session if password is correct
             session['user_authenticated'] = user.user_id
