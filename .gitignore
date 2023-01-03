@@ -94,3 +94,6 @@ data/raw/
 
 # Mypy cache
 .mypy_cache/
+
+# Images
+uploads/

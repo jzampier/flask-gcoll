@@ -23,6 +23,7 @@ app.config['MYSQL_USER'] = bd_user
 app.config['MYSQL_PASSWORD'] = bd_passwd
 app.config['MYSQL_DB'] = 'gamecollection'
 app.config['MYSQL_PORT'] = bd_port
+app.config['UPLOAD_PATH'] = os.path.dirname(os.path.abspath(__file__)) + '/uploads'
 
 db = MySQL(app)
 
@@ -63,7 +64,12 @@ def create():
     category = request.form.get('category')
     console = request.form.get('console')
     game = Game(name, category, console)
-    game_dao.save(game)
+    game = game_dao.save(game)
+
+    file = request.files.get('file')
+    upload_path = app.config['UPLOAD_PATH']
+    file_name = game.game_id
+    file.save(f'{upload_path}/img{file_name}.jpg')
     return redirect(url_for('index'))
 
 
