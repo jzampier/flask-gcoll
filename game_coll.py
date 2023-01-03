@@ -1,8 +1,18 @@
 """Flask Game Site"""
 import os
+import time
 
 from dotenv import find_dotenv, load_dotenv
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import (
+    Flask,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+    send_from_directory,
+)
 from flask_mysqldb import MySQL
 
 from dao import GameDao, UserDao
@@ -68,8 +78,9 @@ def create():
 
     file = request.files.get('file')
     upload_path = app.config['UPLOAD_PATH']
+    timestamp = time.time()
     file_name = game.game_id
-    file.save(f'{upload_path}/img{file_name}.jpg')
+    file.save(f'{upload_path}/img{file_name}-{timestamp}.jpg')
     return redirect(url_for('index'))
 
 
@@ -80,7 +91,10 @@ def update(game_id):
         #!using querystring to redirect to new_game after authentication
         return redirect(url_for('login', next_page=url_for('update')))
     game = game_dao.search_for_id(game_id)
-    return render_template('update.html', ttl='Update Game Info', game=game)
+    img_name = retrieve_img(game_id)
+    return render_template(
+        'update.html', ttl='Update Game Info', game=game, game_img=img_name
+    )
 
 
 @app.route(
@@ -96,6 +110,11 @@ def edit():
     console = request.form.get('console')
     game = Game(name, category, console, game_id=request.form.get('game_id'))
     game_dao.save(game)
+    file = request.files.get('file')
+    upload_path = app.config.get('UPLOAD_PATH')
+    timestamp = time.time()
+    delete_img(game.game_id)
+    file.save(f'{upload_path}/img{game.game_id}-{timestamp}.jpg')
     return redirect(url_for('index'))
 
 
@@ -149,6 +168,25 @@ def logout():
     session['user_authenticated'] = None
     flash('No user are logged')
     return redirect(url_for('index'))
+
+
+@app.route('/uploads/<file_name>')
+def image(file_name):
+    """Renders Image"""
+    return send_from_directory('uploads', file_name)
+
+
+def retrieve_img(game_id):
+    """Retrieves an image without needing timestamp information"""
+    for file_name in os.listdir(app.config.get('UPLOAD_PATH')):
+        if f'img{game_id}' in file_name:
+            return file_name
+
+
+def delete_img(game_id):
+    """Delete images"""
+    file = retrieve_img(game_id)
+    os.remove(os.path.join(app.config.get('UPLOAD_PATH'), file))
 
 
 if __name__ == "__main__":

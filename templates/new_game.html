@@ -4,11 +4,12 @@
   method="post"
   enctype="multipart/form-data"
 >
-  <!-- ?Here -->
-  <figure>
-    <img src="" alt="" />
+  <!-- ?Insert Figure -->
+  <figure class="img-thumbnail col-md-3">
+    <img class="img-fluid" src="{{ url_for('image', file_name='main.jpg') }}" />
     <figcaption>
-      <label for="">
+      <label class="fileContainer">
+        Change image
         <input type="file" name="file" accept=".jpg" />
       </label>
     </figcaption>

@@ -8,6 +8,7 @@
       rel="stylesheet"
       href="{{url_for('static', filename='bootstrap.css')}}"
     />
+    <link rel="stylesheet" href="{{url_for('static', filename='app.css')}}" />
   </head>
   <body>
     <div class="container">
@@ -22,6 +23,14 @@
         <h1>{{ ttl|title }}</h1>
       </div>
       {% block content %}{% endblock %}
+      <script
+        type="text/javascript"
+        src="{{ url_for('static', filename='jquery.js') }}"
+      ></script>
+      <script
+        type="text/javascript"
+        src="{{ url_for('static', filename='app.js') }}"
+      ></script>
     </div>
   </body>
 </html>
